@@ -1,0 +1,1 @@
+libraryDependencies ++= Seq("commons-validator" % "commons-validator" % "1.4.0")
