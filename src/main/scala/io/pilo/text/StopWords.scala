@@ -18,7 +18,7 @@ class StopWords {
     }
     ws.wordCount = count
     ws.stopWordCount = overlappingStopWords.length
-    ws.stopWords = overlappingStopWords
+    //ws.stopWords = overlappingStopWords
   }
 }
 
@@ -26,7 +26,6 @@ object StopWords {
   import io.pilo.util.helpers.FileHelper
 
   private var _stopWordCount, _wordCount = 0
-  private var _stopWords: Array[String] = Array("")
 
   def stopWordCount = _stopWordCount
   def stopWordCount_= (value: Int):Unit = _stopWordCount = value
@@ -34,9 +33,9 @@ object StopWords {
   def wordCount = _wordCount
   def wordCount_= (value: Int): Unit = _wordCount = value
 
-  def stopWords = _stopWords
-  def stopWords_= (value: Array[String]) = _stopWords = value
+  //def stopWords = _stopWords
+  //def stopWords_= (value: Array[String]) = _stopWords = value
 
   val fileName: String = "stopWords.txt"
-  stopWords = FileHelper.loadResourceFile(fileName).split('\n')
+  lazy val stopWords: Set[String] = FileHelper.loadResourceFile(fileName).split('\n').toSet
 }
