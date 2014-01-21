@@ -71,27 +71,18 @@ class Nlp {
   }
 
   def splitSentences(text: String): Array[String] = {
-    import edu.arizona.sista.processors.corenlp.CoreNLPProcessor
-    var doc = new CoreNLPProcessor(internStrings = true).mkDocument(text)
-    var ret: Array[String] = Array()
-    for (sentence <- doc.sentences; if sentence.getSentenceText().length > 10) {
-      ret = ret :+ sentence.getSentenceText().replace("\n", "")
-    }
-    return ret
+    import opennlp.tools.sentdetect.{ SentenceDetectorME, SentenceModel }
+    val model = new SentenceModel(this.getClass.getResourceAsStream("/src/main/resources/io/pilo/en-sent.bin"))
+    return new SentenceDetectorME(model).sentDetect(text)
   }
 
-  def lengthScore(sentenceLen: Int): Double = {
-    return 1 - scala.math.abs(ideal - sentenceLen) / ideal
-  }
+  def lengthScore(sentenceLen: Int): Double = 1.0 - scala.math.abs(ideal - sentenceLen) / ideal
 
   def titleScore(title1: Array[String], sentence: Array[String]): Double = {
     import io.pilo.text.{StopWords => ws}
     val title = title1.filterNot(x => ws.stopWords.contains(x))
-    var count = 0.0
-    for (word <- sentence)
-      if (!ws.stopWords.contains(word) && title.contains(word))
-        count += 1.0
-    return count / scala.math.max(title.length, 1)
+    val count = sentence.count(x => !ws.stopWords.contains(x) && title.contains(x))
+    return count / scala.math.max(title.length, 1).toDouble
   }
 
   def keyWords(text1: String): Map[String, Int] = {
