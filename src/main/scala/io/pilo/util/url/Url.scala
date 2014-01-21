@@ -38,7 +38,7 @@ object Url{
     var (scheme, netloc, path, params, query, fragment) = urlParse(url)
     if (scheme != bscheme || !protocols.contains(scheme)) return url
     if (protocols.contains(scheme)) {
-      if(netloc != "") return urlUnParse((scheme, netloc, path, params, query, fragment))
+      if (netloc != "") return urlUnParse((scheme, netloc, path, params, query, fragment))
       netloc = bnetloc
     }
     if (path.substring(0, 1) == "/") return urlUnParse((scheme, netloc, path, params, query, fragment))

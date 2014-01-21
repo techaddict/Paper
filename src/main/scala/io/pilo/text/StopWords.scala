@@ -38,5 +38,5 @@ object StopWords {
   def stopWords_= (value: Array[String]) = _stopWords = value
 
   val fileName: String = "stopWords.txt"
-  stopWords = FileHelper.loadResourceFile(fileName)
+  stopWords = FileHelper.loadResourceFile(fileName).split('\n')
 }

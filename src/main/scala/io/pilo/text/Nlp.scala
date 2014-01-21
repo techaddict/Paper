@@ -17,7 +17,7 @@ class Nlp {
     val senSize = sentences.length
     var ranks: Map[String, Double] = Map()
     var i = 0
-    for (i <- 0 to senSize) {
+    for (i <- 0 to senSize - 1) {
       val sentence = splitWords(sentences(i))
       val titleFeature = titleScore(titleWords, sentence)
       val sentenceLen = lengthScore(sentence.length)
@@ -27,7 +27,7 @@ class Nlp {
       val frequency = (sbsFeature + dbsFeature) / 2.0 * 10.0
 
       val totalScore = (titleFeature * 1.5 + frequency * 2.0 + sentenceLen * 1.0 + sentencePos * 1.0) / 4.0
-      ranks += sentence(i) -> totalScore
+      ranks += sentences(i) -> totalScore
     }
     return ranks
   }
@@ -48,7 +48,7 @@ class Nlp {
     var first: Array[Int] = Array()
     var second: Array[Int] = Array()
     val i = 0
-    for (i <- 0 to words.length) {
+    for (i <- 0 to words.length - 1) {
       if (keyWords.contains(words(i))) {
         val score = keyWords(words(i))
         if (first == Array())
@@ -56,8 +56,13 @@ class Nlp {
         else {
           second = first
           first = Array(i, score)
-          val diff = first(0) - second(0)
-          summ += ((first(1)*second(1)) / scala.math.pow(diff, 2.0))
+          val diff = first(0)
+          if(second.size > 0)
+            first(0) - second(0)
+          if(second.size > 1)
+            summ += ((first(1)*second(1)) / scala.math.pow(diff, 2.0))
+          else
+            summ += (first(1) / scala.math.pow(diff, 2.0))
         }
       }
     }
