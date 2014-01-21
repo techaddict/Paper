@@ -5,9 +5,9 @@ object Url{
   def parseQs(qs: String): Map[String, Array[String]] = {
     var r: Map[String, Array[String]] = Map()
     var pairs = qs.split(Array('&', ';')).filter(x => x != "")
-    for(pair <- pairs) {
+    for (pair <- pairs) {
       var nv = pair.split("=", 2)
-      if(nv.length == 2 && nv(1).length > 0) {
+      if (nv.length == 2 && nv(1).length > 0) {
         // Add (%20 etc.)iso-latin to utf-8
         var name = nv(0).replaceAll("+", " ")
         var value = nv(1).replaceAll("+", " ")
@@ -24,7 +24,7 @@ object Url{
 
   def urlUnParse(in: (String, String, String, String, String, String)): String = {
     var (scheme, netloc, url, params, query, fragment) = in
-    if(params != "") url = s"$url;$params"
+    if (params != "") url = s"$url;$params"
     return urlUnSplit((scheme, netloc, url, query, fragment))
   }
 
@@ -32,45 +32,43 @@ object Url{
 
     import scala.util.control.Breaks._
 
-    if(base == "") return url
-    if(url == "") return base
+    if (base == "") return url
+    if (url == "") return base
     var (bscheme, bnetloc, bpath, bparams, bquery, bfragment) = urlParse(base)
     var (scheme, netloc, path, params, query, fragment) = urlParse(url)
-    if(scheme != bscheme || !protocols.contains(scheme)) return url
-    if(protocols.contains(scheme)) {
+    if (scheme != bscheme || !protocols.contains(scheme)) return url
+    if (protocols.contains(scheme)) {
       if(netloc != "") return urlUnParse((scheme, netloc, path, params, query, fragment))
       netloc = bnetloc
     }
-    if(path.substring(0, 1) == "/") return urlUnParse((scheme, netloc, path, params, query, fragment))
-    if(path == "") {
-      if(params == "") {
+    if (path.substring(0, 1) == "/") return urlUnParse((scheme, netloc, path, params, query, fragment))
+    if (path == "") {
+      if (params == "") {
         params = bparams
-        if(query == "") {
+        if (query == "") {
           query = bquery
         }
       }
       return urlUnParse((scheme, netloc, path, params, query, fragment))
     }
     var segments = bpath.split('/').dropRight(1) ++ path.split('/')
-    if(segments.last == ".") {
+    if (segments.last == ".") {
       segments.dropRight(1)
       segments ++= Array("")
     }
     segments = segments.filter(x => x != ".")
 
     breakable {
-      for(i <- 1 to segments.length - 1) {
-        if(segments(i) == ".." && !Array("", "..").contains(segments(i - 1))) {
-          segments = segments.take(i - 1) ++ segments.drop(i + 1)
-          break
-        }
+      for (i <- 1 to segments.length - 1; if (segments(i) == ".." && !Array("", "..").contains(segments(i - 1)))) {
+        segments = segments.take(i - 1) ++ segments.drop(i + 1)
+        break
       }
     }
-    if(segments == Array("", "..")) {
+    if (segments == Array("", "..")) {
       segments.dropRight(1)
       segments ++= Array("")
     }
-    else if(segments.length > 2 && segments.last == "..") {
+    else if (segments.length > 2 && segments.last == "..") {
       segments.dropRight(2)
       segments ++= Array("")
     }
@@ -78,14 +76,14 @@ object Url{
   }
   def urlUnSplit(in: (String, String, String, String, String)): String = {
     var (scheme, netloc, url, query, fragment) = in
-    if(netloc != "" || (scheme != "" && protocols.contains(scheme) && url.substring(0, 2) != "//")) {
-      if(url != "" && url.substring(0, 1) != "/") url = "/" + url
-      if(netloc != "") url = "//" + netloc + url
+    if (netloc != "" || (scheme != "" && protocols.contains(scheme) && url.substring(0, 2) != "//")) {
+      if (url != "" && url.substring(0, 1) != "/") url = "/" + url
+      if (netloc != "") url = "//" + netloc + url
       else url = "//" + url
     }
-    if(scheme != "") url = scheme + ":" + url
-    if(query != "") url = url + "?" + query
-    if(fragment != "") url = url + "#" + fragment
+    if (scheme != "") url = scheme + ":" + url
+    if (query != "") url = url + "?" + query
+    if (fragment != "") url = url + "#" + fragment
     return url
   }
 
@@ -93,7 +91,7 @@ object Url{
     var params = ""
     var (scheme, netloc, url1, query, fragment) = urlSplit(url)
     var i = url1.indexOf(";")
-    if(protocols.contains(scheme) && (i > 0) ) {
+    if (protocols.contains(scheme) && (i > 0) ) {
       val tuple = splitParams(url)
       url1 = tuple._1
       params = tuple._2
@@ -103,9 +101,9 @@ object Url{
 
   def splitParams(url: String): (String, String) = {
     var i = url.indexOf("/")
-    if(i > 0) {
+    if (i > 0) {
       i = url.indexOf(";", url.lastIndexOf("/"))
-      if(i < 0) {
+      if (i < 0) {
         return (url, "")
       }
     }
@@ -121,15 +119,15 @@ object Url{
     var j: Int = 0
     var temp: Array[String] = null.asInstanceOf[Array[String]]
     var i: Int = url.indexOf(":")
-    if(i > 0) {
+    if (i > 0) {
       scheme = url.substring(0, i).toLowerCase()
-      if(protocols.contains(scheme)) {
+      if (protocols.contains(scheme)) {
         url = url.substring(i+1)
-        if(url.substring(0, 2) == "//") {
+        if (url.substring(0, 2) == "//") {
           i = url.indexOf('/', 2)
           if (i < 0) {
             i = url.indexOf('#')
-            if(i < 0){
+            if (i < 0){
               i = url.length()
             }
           }
@@ -137,13 +135,13 @@ object Url{
           url = url.substring(i)
         }
         j = url.indexOf('#')
-        if(j > 0) {
+        if (j > 0) {
           temp = url.split("#")
           url = temp(0)
           fragment = temp(1)
         }
         j = url.indexOf('?')
-        if(j > 0) {
+        if (j > 0) {
           temp = url.split("\\?")
           url = temp(0)
           query = temp(1)
