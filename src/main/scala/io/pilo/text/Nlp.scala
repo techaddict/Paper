@@ -4,13 +4,12 @@ class Nlp {
   val ideal = 20.0
   def summarize(url: String, title: String, text: String): Array[String] = {
     if (text == "" || title == "") return Array()
-    var summaries: Array[String] = Array()
     val sentences = splitSentences(text)
     val keys = keyWords(text)
+    keys map {x=>println(x)}
     val titleWords = splitWords(title)
     val ranks = score(sentences, titleWords, keys)
-    ranks.keys.copyToArray(summaries)
-    return summaries
+    return ranks.keys.toArray
   }
 
   def score(sentences: Array[String], titleWords: Array[String], keyWords: Map[String, Int]): Map[String, Double] = {
@@ -72,8 +71,9 @@ class Nlp {
 
   def splitSentences(text: String): Array[String] = {
     import opennlp.tools.sentdetect.{ SentenceDetectorME, SentenceModel }
-    val model = new SentenceModel(this.getClass.getResourceAsStream("/src/main/resources/io/pilo/en-sent.bin"))
-    return new SentenceDetectorME(model).sentDetect(text)
+    val model = new SentenceModel(getClass.getResource("en-sent.bin"))
+    val sen = new SentenceDetectorME(model)
+    return sen.sentDetect(text)
   }
 
   def lengthScore(sentenceLen: Int): Double = 1.0 - scala.math.abs(ideal - sentenceLen) / ideal
