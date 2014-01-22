@@ -1,20 +1,26 @@
 package io.pilo.text
 
+import scala.collection.immutable.ListMap
+
+case class Sentence(sentence: String, score: Double, order: Int)
+
 class Nlp {
   val ideal = 20.0
-  def summarize(url: String, title: String, text: String): Array[String] = {
+  val summaryLimit = 5
+  val keywordsSize = 10
+  def summarize(url: String, title: String, text: String): Array[Sentence] = {
     if (text == "" || title == "") return Array()
     val sentences = splitSentences(text)
-    val keys = keyWords(text)
-    keys map {x=>println(x)}
-    val titleWords = splitWords(title)
-    val ranks = score(sentences, titleWords, keys)
-    return ranks.keys.toArray
+    def titleWords = splitWords(title)
+    val resKeywords = getKeywords(text)._1
+    val keywords = resKeywords.takeRight(keywordsSize.min(resKeywords.size))
+    val ranks = score(sentences, titleWords, keywords)
+    return ranks.sortBy(-_.score).take(ranks.size.min(summaryLimit)).sortBy(_.order).toArray.reverse
   }
 
-  def score(sentences: Array[String], titleWords: Array[String], keyWords: Map[String, Int]): Map[String, Double] = {
+  def score(sentences: Array[String], titleWords: Array[String], keyWords: Map[String, Int]): List[Sentence] = {
     val senSize = sentences.length
-    var ranks: Map[String, Double] = Map()
+    var ranks: List[Sentence] = List()
     var i = 0
     for (i <- 0 to senSize - 1) {
       val sentence = splitWords(sentences(i))
@@ -26,7 +32,7 @@ class Nlp {
       val frequency = (sbsFeature + dbsFeature) / 2.0 * 10.0
 
       val totalScore = (titleFeature * 1.5 + frequency * 2.0 + sentenceLen * 0.5 + sentencePos * 1.0) / 4.0
-      ranks += sentences(i) -> totalScore
+      ranks = ranks :+ Sentence(sentences(i), totalScore, i)
     }
     return ranks
   }
@@ -82,13 +88,13 @@ class Nlp {
     return count / math.max(title.size, 1).toDouble
   }
 
-  def keyWords(text1: String): Map[String, Int] = {
+  def getKeywords(text: String): (Map[String, Int], Int) = {
     import io.pilo.text.{StopWords => ws}
-    var text = splitWords(text1)
-    val numWords = text.length
+    var keyWords = splitWords(text)
+    val numWords = keyWords.length
     var freq: List[(String, Int)] =
-      text.filterNot(x => ws.stopWords.contains(x)).groupBy(x => x).map(x => (x._1, x._2.size)).toList.sortBy{_._2}.takeRight(10)
-    return freq.toMap
+      keyWords.filterNot(x => ws.stopWords.contains(x)).groupBy(x => x).map(x => (x._1, x._2.size)).toList.sortBy{_._2}
+    return (freq.toMap, numWords)
   }
 
   def splitWords(text: String): Array[String] =

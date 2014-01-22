@@ -47,7 +47,7 @@ class Parse {
   }
 
   def validUrl(url: String) = {
-    import org.apache.commons.validator.UrlValidator
+    import org.apache.commons.validator.routines.UrlValidator
     new UrlValidator().isValid(url)
   }
 
