@@ -25,43 +25,41 @@ class Nlp {
       val dbsFeature = dbs(sentence, keyWords)
       val frequency = (sbsFeature + dbsFeature) / 2.0 * 10.0
 
-      val totalScore = (titleFeature * 1.5 + frequency * 2.0 + sentenceLen * 1.0 + sentencePos * 1.0) / 4.0
+      val totalScore = (titleFeature * 1.5 + frequency * 2.0 + sentenceLen * 0.5 + sentencePos * 1.0) / 4.0
       ranks += sentences(i) -> totalScore
     }
     return ranks
   }
 
   def sbs(words: Array[String], keyWords: Map[String, Int]): Double = {
-    var score = 0.0
-    if (words.length == 0)
+    if (words.size == 0)
       return 0
-    for (word <- words)
-      if (keyWords.contains(word))
-        score += keyWords(word)
-    return (1.0 / scala.math.abs(words.length) * score) / 10.0
+    val score = words.map { word =>
+      keyWords.contains(word) match {
+        case true => keyWords(word)
+        case false => 0
+      }
+    }.sum
+    return (1.0 / scala.math.abs(words.length) * score) // / 10.0
   }
 
   def dbs(words: Array[String], keyWords: Map[String, Int]): Double = {
-    if (words.length == 0) return 0
+    if (words.length == 0)
+      return 0
     var summ: Double = 0
-    var first: Array[Int] = Array()
-    var second: Array[Int] = Array()
+    var first: (Int, Double) = (0, 0)
+    var second: (Int, Double) = (0, 0)
     val i = 0
     for (i <- 0 to words.length - 1) {
       if (keyWords.contains(words(i))) {
         val score = keyWords(words(i))
-        if (first == Array())
-          first = Array(i, score)
+        if (first == (0, 0))
+          first = (i, score)
         else {
           second = first
-          first = Array(i, score)
-          val diff = first(0)
-          if(second.size > 0)
-            first(0) - second(0)
-          if(second.size > 1)
-            summ += ((first(1)*second(1)) / scala.math.pow(diff, 2.0))
-          else
-            summ += (first(1) / scala.math.pow(diff, 2.0))
+          first = (i, score)
+          val diff = first._1 - second._1
+          summ += ((first._2*second._2) / math.pow(diff, 2.0))
         }
       }
     }
@@ -78,32 +76,21 @@ class Nlp {
 
   def lengthScore(sentenceLen: Int): Double = 1.0 - scala.math.abs(ideal - sentenceLen) / ideal
 
-  def titleScore(title1: Array[String], sentence: Array[String]): Double = {
-    import io.pilo.text.{StopWords => ws}
-    val title = title1.filterNot(x => ws.stopWords.contains(x))
+  def titleScore(title: Array[String], sentence: Array[String]): Double = {
+    import io.pilo.text.{ StopWords => ws }
     val count = sentence.count(x => !ws.stopWords.contains(x) && title.contains(x))
-    return count / scala.math.max(title.length, 1).toDouble
+    return count / math.max(title.size, 1).toDouble
   }
 
   def keyWords(text1: String): Map[String, Int] = {
     import io.pilo.text.{StopWords => ws}
     var text = splitWords(text1)
     val numWords = text.length
-    text = text.filterNot(x => ws.stopWords.contains(x))
-    var freq: Map[String, Int] = Map()
-    for (word <- text) {
-      if (freq.contains(word)) {
-        val count = freq(word) + 1
-        freq -= word
-        freq += word -> count
-      }
-      else freq += word -> 1
-    }
-    val minSize = scala.math.min(10, freq.size)
-    val freqlist: List[(String, Int)] = freq.toList.sortBy{_._2}.takeRight(minSize)
-    return freqlist.toMap
+    var freq: List[(String, Int)] =
+      text.filterNot(x => ws.stopWords.contains(x)).groupBy(x => x).map(x => (x._1, x._2.size)).toList.sortBy{_._2}.takeRight(10)
+    return freq.toMap
   }
-
+  // Optimize
   def splitWords(text1: String): Array[String] = {
     val REGEX = """[^\w ]""".r // Stripping Special Chars
     val text = REGEX.replaceFirstIn(text1, "")
@@ -125,6 +112,6 @@ class Nlp {
     else if (normalized > 0.2) return 0.14
     else if (normalized > 0.1) return 0.23
     else if (normalized > 0) return 0.17
-    else return 0
+    return 0d
   }
 }
