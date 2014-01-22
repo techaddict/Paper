@@ -90,14 +90,9 @@ class Nlp {
       text.filterNot(x => ws.stopWords.contains(x)).groupBy(x => x).map(x => (x._1, x._2.size)).toList.sortBy{_._2}.takeRight(10)
     return freq.toMap
   }
-  // Optimize
-  def splitWords(text1: String): Array[String] = {
-    val REGEX = """[^\w ]""".r // Stripping Special Chars
-    val text = REGEX.replaceFirstIn(text1, "")
-    var ret: Array[String] = Array()
-    for( x <- text.split("\\s+")) ret ++= Array(x.stripPrefix(".").stripSuffix("."))
-    return ret
-  }
+
+  def splitWords(text: String): Array[String] =
+    """[^\w]""".r.split(text).map(_.trim).filter(_.nonEmpty)
 
   def sentencePosition(i: Int, size: Int): Double = {
     val normalized = i*1.0 / size
