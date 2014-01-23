@@ -1,6 +1,6 @@
-import io.pilo.util.url
+package io.pilo.util.url
 
-class Parse {
+object Parse {
   import io.pilo.util.url._
 
   val goodPaths = Array("story", "article", "feature", "featured", "slides", "slideshow", "gallery", "news", "video", "media", "v", "radio", "press")
