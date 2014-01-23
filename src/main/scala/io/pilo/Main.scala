@@ -17,11 +17,11 @@ object Main extends App {
   a.html onSuccess {
     case content =>
       println("html" + content)
-      AsyncWebClient.shutdown()
+      network.AsyncWebClient.shutdown()
   }
   a.html onFailure {
     case e =>
       println("failed" + e)
-      AsyncWebClient.shutdown()
+      network.AsyncWebClient.shutdown()
   }
 }

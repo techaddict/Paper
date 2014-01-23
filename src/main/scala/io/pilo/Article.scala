@@ -47,7 +47,7 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
 
   def download {
     import scala.concurrent.ExecutionContext.Implicits.global
-    html = AsyncWebClient.get(url)
+    html = network.AsyncWebClient.get(url)
     //AsyncWebClient.shutdown()
     isDownloaded = true
   }
@@ -56,7 +56,12 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
 
   def isValidBody = ???
   def isMediaNews = ???
-  def parse = ???
+  def parse = {
+    if(!isDownloaded){
+      println("you must download an article before parsing it")
+    }
+    //doc = parser.from
+  }
 
   def nlp {
     if(!isDownloaded || !isParsed) {
