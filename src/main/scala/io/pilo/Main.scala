@@ -6,4 +6,8 @@ object Main extends App {
   var x = new text.Nlp()
   //println(x.splitWords(txt.toString) map {x=>println(x)})
   x.summarize("", "Astronomic news: the universe may not be expanding after all", txt) map {x => println(x.sentence)}
+
+  //Async Tester
+  import scala.concurrent.ExecutionContext.Implicits.global
+  AsyncWebClient get "http://www.google.co.in/?gws_rd=cr&amp;ei=P4qwUoDKJoKOrQeN8YGQBg" map println foreach (_ => AsyncWebClient.shutdown())
 }
