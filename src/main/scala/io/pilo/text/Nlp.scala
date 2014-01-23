@@ -8,12 +8,12 @@ class Nlp {
   val ideal = 20.0
   val summaryLimit = 5
   val keywordsSize = 10
+
   def summarize(url: String, title: String, text: String): Array[Sentence] = {
     if (text == "" || title == "") return Array()
     val sentences = splitSentences(text)
     def titleWords = splitWords(title)
-    val resKeywords = getKeywords(text)._1
-    val keywords = resKeywords.takeRight(keywordsSize.min(resKeywords.size))
+    val keywords = getKeywords(text)._1
     val ranks = score(sentences, titleWords, keywords)
     return ranks.sortBy(-_.score).take(ranks.size.min(summaryLimit)).sortBy(_.order).toArray.reverse
   }
@@ -94,7 +94,7 @@ class Nlp {
     val numWords = keyWords.length
     var freq: List[(String, Int)] =
       keyWords.filterNot(x => ws.stopWords.contains(x)).groupBy(x => x).map(x => (x._1, x._2.size)).toList.sortBy{_._2}
-    return (freq.toMap, numWords)
+    return (freq.takeRight(keywordsSize.min(freq.size)).toMap, numWords)
   }
 
   def splitWords(text: String): Array[String] =

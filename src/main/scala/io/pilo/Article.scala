@@ -26,6 +26,10 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
   var publishedDate = ""
   var summary = ""
   var html = ""
+  var articleHtml = ""
+
+  var isParsed = false
+  var isDownloaded = false
 
   var metaDescription = ""
   var metaFavicon = ""
@@ -33,4 +37,36 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
   var topNode = None
   var doc = None
   var rawDoc = None
+
+  def build {
+    download
+    parse
+    nlp
+  }
+
+  def download {
+    val html = //get html
+    isDownloaded = true
+  }
+
+  def isValidUrl = validUrl(url)
+
+  def isValidBody = ???
+  def isMediaNews = ???
+  def parse = ???
+
+  def nlp {
+    if(!isDownloaded || !isParsed) {
+      println(" You must Download and Parse the article before using this")
+    }
+    else {
+      import io.pilo.text.Nlp
+      val nlp = new Nlp()
+      val textKeywords = nlp.getKeywords(text)._1.keys
+      val titleKeywords = nlp.getKeywords(title)._1.keys
+      val keywords = (titleKeywords ++ textKeywords).toList
+      val summarySentences = nlp.summarize("", title, text)
+      summary = summarySentences.drop(summarySentences.length - maxSummary).mkString("\r\n")
+    }
+  }
 }
