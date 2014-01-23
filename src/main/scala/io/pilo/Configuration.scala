@@ -16,7 +16,7 @@ trait Configuration {
   val keepArticleHtml = false
   val stopwordsClass = text.StopWords.stopWords
   val browserUserAgent = "pilo.io/0.1"
-  val requestTimeout = 7
+  val requestTimeout = 7000
   val numberThreads = 10
   val verbose = false
 }
