@@ -2,6 +2,7 @@ package io.pilo
 
 import util.url.Url._
 import util.url.Parse._
+import concurrent.{ Future, Promise }
 
 class Article(url1: String, title: String = "", sourceUrl1: String = "") extends Configuration {
   var sourceUrl = sourceUrl1
@@ -25,7 +26,7 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
   var authors: Array[String] = Array()
   var publishedDate = ""
   var summary = ""
-  var html = ""
+  var html: Future[String] = _
   var articleHtml = ""
 
   var isParsed = false
@@ -40,12 +41,14 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
 
   def build {
     download
-    parse
-    nlp
+    //parse
+    //nlp
   }
 
   def download {
-    val html = //get html
+    import scala.concurrent.ExecutionContext.Implicits.global
+    html = AsyncWebClient.get(url)
+    //AsyncWebClient.shutdown()
     isDownloaded = true
   }
 

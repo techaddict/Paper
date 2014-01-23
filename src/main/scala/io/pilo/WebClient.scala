@@ -23,7 +23,7 @@ object AsyncWebClient extends WebClient with Configuration {
     f.addListener(new Runnable {
       def run = {
         val response = f.get
-        println(response.getStatusCode)
+        //println(response.getStatusCode)
         if (response.getStatusCode / 100 < 4)
           p.success(response.getResponseBodyExcerpt(131072))
         else p.failure(BadStatus(response.getStatusCode))

@@ -9,5 +9,19 @@ object Main extends App {
 
   //Async Tester
   import scala.concurrent.ExecutionContext.Implicits.global
-  AsyncWebClient get "http://www.google.co.in/?gws_rd=cr&amp;ei=P4qwUoDKJoKOrQeN8YGQBg" map println foreach (_ => AsyncWebClient.shutdown())
+  //  AsyncWebClient get "http://www.google.co.in/?gws_rd=cr&amp;ei=P4qwUoDKJoKOrQeN8YGQBg" map println foreach (_ => AsyncWebClient.shutdown())
+
+  // Article Tester
+  val a = new Article("http://www.google.co.in/?gws_rd=cr&amp;ei=P4qwUoDKJoKOrQeN8YGQBg", "google", "")
+  a.download
+  a.html onSuccess {
+    case content =>
+      println("html" + content)
+      AsyncWebClient.shutdown()
+  }
+  a.html onFailure {
+    case e =>
+      println("failed" + e)
+      AsyncWebClient.shutdown()
+  }
 }
