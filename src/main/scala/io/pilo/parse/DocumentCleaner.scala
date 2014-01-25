@@ -1,9 +1,10 @@
 package io.pilo.parse
 
 import io.pilo.Article
-import org.jsoup.nodes.Document
+import org.jsoup.nodes.{ Node, Document }
 
 object DocumentCleaner extends io.pilo.Configuration{
+
   def clean(article: Article): Unit = {
     var docToClean = article.doc
     docToClean = cleanArticleTags(docToClean)
@@ -27,15 +28,42 @@ object DocumentCleaner extends io.pilo.Configuration{
     var doc = doc1
     val it = doc.getElementsByTag("em").iterator()
     while(it.hasNext()) {
-      val node = it.next
       val images = doc.getElementsByTag("img")
       if (images.size == 0)
-        node.remove()
+        it.next.remove()
     }
     return doc
   }
 
   def removeDropCaps(doc1: Document): Document = {
     doc1
+  }
+
+  def removeScriptsStyles(doc1: Document): Document = {
+    var doc = doc1
+    var it = doc.getElementsByTag("script").iterator()
+    while(it.hasNext()) {
+      it.next.remove()
+    }
+
+    it = doc.getElementsByTag("style").iterator()
+    while(it.hasNext()) {
+      it.next.remove()
+    }
+
+    def removeComments(node: Node): Unit = {
+      var i = 0
+      while (i < node.childNodes().size()) {
+          val child = node.childNode(i);
+          if (child.nodeName().equals("#comment"))
+              child.remove();
+          else {
+              removeComments(child);
+              i += 1
+          }
+      }
+    }
+    removeComments(doc)
+    return doc
   }
 }
