@@ -3,6 +3,7 @@ package io.pilo
 import util.url.Url._
 import util.url.Parse._
 import concurrent.{ Future, Promise }
+import org.jsoup.nodes.Document
 
 class Article(url1: String, title: String = "", sourceUrl1: String = "") extends Configuration {
   var sourceUrl = sourceUrl1
@@ -36,7 +37,7 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
   var metaFavicon = ""
   var canonicalLink = ""
   var topNode = None
-  var doc = None
+  var doc: Document = _
   var rawDoc = None
 
   def build {
