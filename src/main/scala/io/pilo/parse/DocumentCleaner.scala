@@ -48,9 +48,7 @@ object DocumentCleaner extends io.pilo.Configuration{
   }
 
   def cleanArticleTags(doc: Document): Document = {
-    val it = doc.getElementsByTag("article").iterator()
-    while (it.hasNext()) {
-      val article = it.next
+    doc.getElementsByTag("article").foreach { article =>
       Array("id", "name", "class").foreach { attr =>
         article.removeAttr(attr)
       }
@@ -59,42 +57,33 @@ object DocumentCleaner extends io.pilo.Configuration{
   }
 
   def cleanEmTags(doc: Document): Document = {
-    val it = doc.getElementsByTag("em").iterator()
-    while (it.hasNext()) {
+    doc.getElementsByTag("em") foreach { elem =>
       val images = doc.getElementsByTag("img")
       if (images.size == 0)
-        it.next.remove()
+        elem.remove()
     }
     return doc
   }
 
   def removeDropCaps(doc: Document): Document = {
-    var it = doc.select("span[class~=(dropcap|drop_cap)]").iterator()
-    while (it.hasNext()) {
-      val tn = new TextNode(it.next.text, doc.baseUri)
-      doc.replaceWith(tn)
+    doc.select("span[class~=(dropcap|drop_cap)]") foreach { elem =>
+      doc.replaceWith(new TextNode(elem.text, doc.baseUri))
     }
     return doc
   }
 
   def cleanUpSpanTagsInParagraphs(doc: Document): Document = {
-    val spans = doc.getElementsByTag("span")
-    spans foreach { item =>
+    doc.getElementsByTag("span") foreach { item =>
       if (item.parent().nodeName == "p") {
-        val tn = new TextNode(item.text, doc.baseUri)
-        item.replaceWith(tn)
+        item.replaceWith(new TextNode(item.text, doc.baseUri))
       }
     }
-    doc
+    return doc
   }
-  def removeScriptsStylesComments(doc: Document): Document = {
-    var it = doc.getElementsByTag("script").iterator()
-    while (it.hasNext())
-      it.next.remove()
 
-    it = doc.getElementsByTag("style").iterator()
-    while (it.hasNext())
-      it.next.remove()
+  def removeScriptsStylesComments(doc: Document): Document = {
+    doc.getElementsByTag("script").foreach(_.remove())
+    doc.getElementsByTag("style").foreach(_.remove())
 
     def removeComments(node: Node): Unit = {
       var i = 0
@@ -114,30 +103,15 @@ object DocumentCleaner extends io.pilo.Configuration{
 
   def cleanBadTags(doc: Document): Document = {
     val children = doc.body.children
-    var it = children.select(naughtyIDs).iterator()
-    while (it.hasNext)
-      it.next.remove()
-
-    it = children.select(naughtyClasses).iterator()
-    while (it.hasNext)
-      it.next.remove()
-
-    it = children.select(naughtyNames).iterator()
-    while (it.hasNext)
-      it.next.remove()
-
+    children.select(naughtyIDs).foreach(_.remove())
+    children.select(naughtyClasses).foreach(_.remove())
+    children.select(naughtyNames).foreach(_.remove())
     return doc
   }
 
   def RemoveNodeREGEX(doc: Document, pattern: String): Document = {
-    var it = doc.getElementsByAttributeValueMatching("id", pattern).iterator()
-    while (it.hasNext)
-      it.next.remove()
-
-    it = doc.getElementsByAttributeValueMatching("class", pattern).iterator()
-    while (it.hasNext)
-      it.next.remove()
-
+    doc.getElementsByAttributeValueMatching("id", pattern).foreach(_.remove())
+    doc.getElementsByAttributeValueMatching("class", pattern).foreach(_.remove())
     return doc
   }
 
@@ -149,9 +123,7 @@ object DocumentCleaner extends io.pilo.Configuration{
   }
 
   def convertWantedTagsToParagraphs(doc: Document, wantedTags: Tag): Document = {
-    val it = Collector.collect(wantedTags, doc).iterator()
-    while (it.hasNext) {
-      var elem = it.next
+    Collector.collect(wantedTags, doc) foreach { elem =>
       blockElementTags foreach { blockEle =>
         if(Collector.collect(blockEle, elem).isEmpty)
           replaceElementsWithPara(doc, elem)
@@ -179,7 +151,7 @@ object DocumentCleaner extends io.pilo.Configuration{
       else {
         val replaceNodes = getReplacementNodes(doc, div)
         div.children.foreach(_.remove())
-        replaceNodes.foreach{ node =>
+        replaceNodes.foreach { node =>
           div.appendChild(node)
         }
       }
@@ -199,7 +171,7 @@ object DocumentCleaner extends io.pilo.Configuration{
     val replacementText = new StringBuilder
     val nodesToReturn = new ListBuffer[Node]()
     val nodesToRemove = new ListBuffer[Node]()
-    div.childNodes.foreach{ kid =>
+    div.childNodes foreach { kid =>
       if (kid.nodeName == "p" && replacementText.size > 0) {
         val newNode = getFlushedBuffer(replacementText, doc)
         nodesToRemove += newNode
