@@ -4,6 +4,7 @@ import util.url.Url._
 import util.url.Parse._
 import concurrent.{ Future, Promise }
 import org.jsoup.nodes.Document
+import org.jsoup.Jsoup
 
 class Article(url1: String, title: String = "", sourceUrl1: String = "") extends Configuration {
   var sourceUrl = sourceUrl1
@@ -61,7 +62,7 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
     if(!isDownloaded){
       println("you must download an article before parsing it")
     }
-    //doc = parser.from
+    //doc = Jsoup.parse(html)
   }
 
   def nlp {

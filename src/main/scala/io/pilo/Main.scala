@@ -28,7 +28,11 @@ object Main extends App {
   }
 
   //Cleaner Tester
-  val html = """<body><article class = "hshs">dlsjdlkskljs</article></body>"""
+  import org.jsoup.Jsoup
   import parse.DocumentCleaner._
-  println(cleanArticleTags(Jsoup.parse(html)))
+  val content = util.helpers.FileHelper.loadResourceFile("testhtml/aol1.txt")
+  println(content.length)
+  var html = Jsoup.parse(content)
+  html = clean(html)
+  println(html.toString)
 }

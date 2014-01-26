@@ -28,9 +28,9 @@ object DocumentCleaner extends io.pilo.Configuration{
   val facebookPattern = "[^-]facebook"
   val twitterPattern = "[^-]twitter"
 
-  def clean(article: Article): Document = {
-    var docToClean = article.doc
-    docToClean = cleanArticleTags(docToClean)
+  def clean(article: Document): Document = {
+    var docToClean = article
+    //docToClean = cleanArticleTags(docToClean)
     docToClean = cleanEmTags(docToClean)
     docToClean = removeDropCaps(docToClean)
     docToClean = removeScriptsStylesComments(docToClean)
@@ -83,6 +83,7 @@ object DocumentCleaner extends io.pilo.Configuration{
 
   def removeScriptsStylesComments(doc: Document): Document = {
     doc.getElementsByTag("script").foreach(_.remove())
+    doc.getElementsByTag("noscript").foreach(_.remove())
     doc.getElementsByTag("style").foreach(_.remove())
 
     def removeComments(node: Node): Unit = {
@@ -116,21 +117,35 @@ object DocumentCleaner extends io.pilo.Configuration{
   }
 
   def replaceElementsWithPara(doc: Document, div: Element) {
-    val newDoc = new Document(doc.baseUri)
-    val newNode = newDoc.createElement("p")
-    newNode.append(div.html)
-    div.replaceWith(newNode)
+    try {
+      val newDoc = new Document(doc.baseUri)
+      val newNode = newDoc.createElement("p")
+      newNode.append(div.html)
+      div.replaceWith(newNode)
+    } catch {
+      case _: Exception =>
+    }
   }
 
   def convertWantedTagsToParagraphs(doc: Document, wantedTags: Tag): Document = {
     Collector.collect(wantedTags, doc) foreach { elem =>
       blockElementTags foreach { blockEle =>
-        if(Collector.collect(blockEle, elem).isEmpty)
-          replaceElementsWithPara(doc, elem)
+        if(Collector.collect(blockEle, elem).isEmpty){
+          //println("in")
+          if (doc != null && elem != null)
+            replaceElementsWithPara(doc, elem)
+          //println("out\n\n\n")
+        }
         else {
           val replacements = getReplacementNodes(doc, elem)
           elem.children() foreach(_.remove())
-          replacements foreach(n => elem.appendChild(n))
+          replacements foreach{n =>
+            try {
+              elem.appendChild(n)
+            } catch {
+              case _: Exception => println("Failed")
+            }
+          }
         }
       }
     }
