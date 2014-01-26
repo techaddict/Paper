@@ -28,7 +28,7 @@ object DocumentCleaner extends io.pilo.Configuration{
   val facebookPattern = "[^-]facebook"
   val twitterPattern = "[^-]twitter"
 
-  def clean(article: Article): Unit = {
+  def clean(article: Article): Document = {
     var docToClean = article.doc
     docToClean = cleanArticleTags(docToClean)
     docToClean = cleanEmTags(docToClean)
@@ -44,6 +44,7 @@ object DocumentCleaner extends io.pilo.Configuration{
     articleRootTags foreach { articleRootTag =>
       docToClean = convertWantedTagsToParagraphs(docToClean, articleRootTag)
     }
+    docToClean
   }
 
   def cleanArticleTags(doc: Document): Document = {
