@@ -7,6 +7,8 @@ import org.jsoup.nodes.Document
 import org.jsoup.Jsoup
 
 class Article(url1: String, title: String = "", sourceUrl1: String = "") extends Configuration {
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   var sourceUrl = sourceUrl1
   var url = url1
 
@@ -43,8 +45,8 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
 
   def build {
     download
-    //parse
-    //nlp
+    parse
+    nlp
   }
 
   def download {
@@ -62,7 +64,16 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
     if(!isDownloaded){
       println("you must download an article before parsing it")
     }
-    //doc = Jsoup.parse(html)
+    html onSuccess {
+      case content =>
+        doc = Jsoup.parse(content)
+        network.AsyncWebClient.shutdown()
+    }
+    html onFailure {
+      case e =>
+        println("Error html not found" + e)
+        network.AsyncWebClient.shutdown()
+    }
   }
 
   def nlp {

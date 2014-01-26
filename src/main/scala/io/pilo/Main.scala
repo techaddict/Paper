@@ -34,5 +34,5 @@ object Main extends App {
   println(content.length)
   var html = Jsoup.parse(content)
   html = clean(html)
-  println(html.toString)
+  println(html.toString.length)
 }
