@@ -3,8 +3,9 @@ package io.pilo.parse
 import io.pilo.Article
 import org.jsoup.nodes.{ Element, TextNode, Node, Document }
 import org.jsoup.select.Evaluator.Tag
-import org.jsoup.select.Collector
+import org.jsoup.select.{ Collector, Elements }
 import scala.util.matching.Regex
+import java.util.regex.{Matcher, Pattern}
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
@@ -17,15 +18,32 @@ object DocumentCleaner extends io.pilo.Configuration{
   val naughtyClasses = "[class~=(" + removeNodes + ")]"
   val naughtyNames = "[name~=(" + removeNodes + ")]"
   val tabsAndNewLinesReplacements = "".r
-  val divToPElementsPattern = "<(a|blockquote|dl|div|img|ol|p|pre|table|ul)"
-  val blockElemementTags = List[Tag]("a", "blockquote", "dl", "div", "img", "ol", "p", "pre", "table", "ul")
-  val articleRootTags = List[Tag]("div", "span", "article")
+  val divToPElementsPattern = Pattern.compile("<(a|blockquote|dl|div|img|ol|p|pre|table|ul)")
+  val blockElementTags = Array(new Tag("a"), new Tag("blockquote"), new Tag("dl"), new Tag("div"), new Tag("img"), new Tag("ol"), new Tag("p"), new Tag("pre"), new Tag("table"), new Tag("ul"))
+  val articleRootTags = Array(new Tag("div"), new Tag("span"), new Tag("article"))
+
+  val captionPattern = "^caption$"
+  val googlePattern = " google "
+  val entriesPattern = "^[^entry-]more.*$"
+  val facebookPattern = "[^-]facebook"
+  val twitterPattern = "[^-]twitter"
 
   def clean(article: Article): Unit = {
     var docToClean = article.doc
     docToClean = cleanArticleTags(docToClean)
     docToClean = cleanEmTags(docToClean)
     docToClean = removeDropCaps(docToClean)
+    docToClean = removeScriptsStylesComments(docToClean)
+    docToClean = cleanBadTags(docToClean)
+    docToClean = RemoveNodeREGEX(docToClean, captionPattern)
+    docToClean = RemoveNodeREGEX(docToClean, googlePattern)
+    docToClean = RemoveNodeREGEX(docToClean, entriesPattern)
+    docToClean = RemoveNodeREGEX(docToClean, facebookPattern)
+    docToClean = RemoveNodeREGEX(docToClean, twitterPattern)
+    docToClean = cleanUpSpanTagsInParagraphs(docToClean)
+    articleRootTags foreach { articleRootTag =>
+      docToClean = convertWantedTagsToParagraphs(docToClean, articleRootTag)
+    }
   }
 
   def cleanArticleTags(doc: Document): Document = {
@@ -58,6 +76,16 @@ object DocumentCleaner extends io.pilo.Configuration{
     return doc
   }
 
+  def cleanUpSpanTagsInParagraphs(doc: Document): Document = {
+    val spans = doc.getElementsByTag("span")
+    spans foreach { item =>
+      if (item.parent().nodeName == "p") {
+        val tn = new TextNode(item.text, doc.baseUri)
+        item.replaceWith(tn)
+      }
+    }
+    doc
+  }
   def removeScriptsStylesComments(doc: Document): Document = {
     var it = doc.getElementsByTag("script").iterator()
     while (it.hasNext())
@@ -123,21 +151,46 @@ object DocumentCleaner extends io.pilo.Configuration{
     val it = Collector.collect(wantedTags, doc).iterator()
     while (it.hasNext) {
       var elem = it.next
-      if(Collector.collect(blockElemementTags, elem).isEmpty)
-        replaceElementsWithPara(doc, elem)
-      else {
-        val replacements = getReplacementNodes(doc, elem)
-        elem.children() foreach(_.remove())
-        replacements foreach(n => elem.appendChild(n))
+      blockElementTags foreach { blockEle =>
+        if(Collector.collect(blockEle, elem).isEmpty)
+          replaceElementsWithPara(doc, elem)
+        else {
+          val replacements = getReplacementNodes(doc, elem)
+          elem.children() foreach(_.remove())
+          replacements foreach(n => elem.appendChild(n))
+        }
       }
     }
     return doc
   }
 
-  def getFlushedBuffer(replacementText: String, doc: Document): Node = {
+  def convertDivsToParagraphs(doc: Document, domType: String): Document = {
+    var badDivs = 0
+    var convertedTextNodes = 0
+    val divs: Elements = doc.getElementsByTag(domType)
+    var divIndex = 0
+    divs foreach { div =>
+      val divToPElementsMatcher = divToPElementsPattern.matcher(div.html.toLowerCase)
+      if (divToPElementsMatcher.find == false) {
+        replaceElementsWithPara(doc, div)
+        badDivs += 1
+      }
+      else {
+        val replaceNodes = getReplacementNodes(doc, div)
+        div.children.foreach(_.remove())
+        replaceNodes.foreach{ node =>
+          div.appendChild(node)
+        }
+      }
+      divIndex += 1
+    }
+    return doc
+  }
+
+  def getFlushedBuffer(replacementText: StringBuilder, doc: Document): Node = {
     val newDoc = new Document(doc.baseUri)
     val newPara = newDoc.createElement("p")
-    newPara.html(replacementText)
+    newPara.html(replacementText.toString)
     newPara
   }
 
@@ -156,7 +209,7 @@ object DocumentCleaner extends io.pilo.Configuration{
       else if (kid.nodeName == "#text") {
         val kidTextNode = kid.asInstanceOf[TextNode]
         val kidText = kidTextNode.attr("text")
-        val replaceText = tabsAndNewLinesReplacements.replaceAll(kidText)
+        val replaceText = tabsAndNewLinesReplacements.replaceAllIn(kidText, "")
         if (replaceText.trim().length > 1) {
           var prevSibNode = kidTextNode.previousSibling
           while (prevSibNode != null && prevSibNode.nodeName == "a" && prevSibNode.attr("grv-usedalready") != "yes") {
@@ -180,7 +233,7 @@ object DocumentCleaner extends io.pilo.Configuration{
         nodesToReturn += kid
     }
     if (replacementText.size > 0) {
-      nodesToReturn += getFlushedBuffer(replacementText.toString, doc)
+      nodesToReturn += getFlushedBuffer(replacementText, doc)
       replacementText.clear()
     }
     nodesToRemove.foreach(_.remove())
