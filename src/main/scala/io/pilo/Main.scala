@@ -14,11 +14,18 @@ object Main extends App {
   //  AsyncWebClient get "http://www.google.co.in/?gws_rd=cr&amp;ei=P4qwUoDKJoKOrQeN8YGQBg" map println foreach (_ => AsyncWebClient.shutdown())
 
   // Article Tester
-  val a = new Article("http://www.google.co.in/?gws_rd=cr&amp;ei=P4qwUoDKJoKOrQeN8YGQBg", "google", "")
+  val a = new Article("http://techcrunch.com/2014/01/25/app-net-backer-bitcoin-crowdfunding/", "App.net Launches Backer, A Bitcoin-Friendly Crowdfunding Engine For Individual Software Feature", "")
   a.download
   a.html onSuccess {
     case content =>
-      println("sucess")
+      //Cleaner Tester
+      import org.jsoup.Jsoup
+      import parse.DocumentCleaner._
+      //val content = util.helpers.FileHelper.loadResourceFile("testhtml/aol1.txt")
+      println(content.length)
+      var html = Jsoup.parse(content)
+      html = clean(html)
+      println(html.toString.length)
       network.AsyncWebClient.shutdown()
   }
   a.html onFailure {
@@ -27,12 +34,4 @@ object Main extends App {
       network.AsyncWebClient.shutdown()
   }
 
-  //Cleaner Tester
-  import org.jsoup.Jsoup
-  import parse.DocumentCleaner._
-  val content = util.helpers.FileHelper.loadResourceFile("testhtml/aol1.txt")
-  println(content.length)
-  var html = Jsoup.parse(content)
-  html = clean(html)
-  println(html.toString.length)
 }
