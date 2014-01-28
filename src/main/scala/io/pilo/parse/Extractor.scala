@@ -44,8 +44,24 @@ class Extractor extends io.pilo.Configuration {
     val html = article.html
     attrs foreach { attr =>
       vals foreach { value =>
-        //found = doc.getElementsByTag(attr)
+        val found = doc.getAttribute(attr)
       }
+    }
+
+    def getTitle(article: Article): String = {
+      var title = ""
+      val doc = article.doc
+      val title = doc.getElementsByTag("title")
+      if (title == null || title.isEmpty)
+        return ""
+      var titleText = title.first.text
+      if (titleText == null || titleText == "")
+        return ""
+      var usedDelimeter = false
+      if (titleText.contains("|")) {
+        //titleText
+      }
+      return ""
     }
   }
 }
