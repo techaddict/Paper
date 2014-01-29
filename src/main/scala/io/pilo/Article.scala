@@ -11,6 +11,7 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
 
   var sourceUrl = sourceUrl1
   var url = url1
+  var finalUrl = ""
 
   if(sourceUrl == "")
     sourceUrl = getScheme(url) + "://" + getDomain(url)

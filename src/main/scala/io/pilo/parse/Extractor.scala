@@ -5,6 +5,7 @@ import org.jsoup.nodes.{ Element, TextNode, Node, Document }
 import org.jsoup.select.Evaluator.Tag
 import org.jsoup.select.{ Collector, Elements }
 import scala.util.matching.Regex
+import io.pilo.util.url.Parse._
 
 class Extractor extends io.pilo.Configuration {
   def getAuthors(article: Article) {
@@ -96,5 +97,30 @@ class Extractor extends io.pilo.Configuration {
       }
       return """»|(&raquo;)""".r.replaceAllIn(titlePieces(largeTextIndex), "")
     }
+
+    def getMetaContent(doc: Document, metaName: String): String = {
+      val meta: Elements = doc.select(metaName)
+      var content = ""
+      if (meta.size > 0)
+        content = meta.first.attr("content")
+      return (if (content == "") "" else content)//trim
+    }
+
+    def getMetaDescription(article: Article) =
+      getMetaContent(article.doc, "meta[name=description]")
+
+    def getMetaKeywords(article: Article) =
+      getMetaContent(article.doc, "meta[name=keywords]")
+
+    def getCanonicalLink(article: Article): String = {
+      val meta = article.doc.select("link[rel=canonical]")
+      if (meta.size() > 0) {
+        val href = Option(meta.first().attr("href")).getOrElse("")
+        if (href.nonEmpty) href else article.finalUrl
+      }
+      else
+        article.finalUrl
+    }
+
   }
 }
