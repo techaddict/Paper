@@ -4,6 +4,7 @@ import io.pilo.Article
 import org.jsoup.nodes.{ Element, TextNode, Node, Document }
 import org.jsoup.select.Evaluator.Tag
 import org.jsoup.select.{ Collector, Elements }
+import scala.util.matching.Regex
 
 class Extractor extends io.pilo.Configuration {
   def getAuthors(article: Article) {
@@ -44,24 +45,56 @@ class Extractor extends io.pilo.Configuration {
     val html = article.html
     attrs foreach { attr =>
       vals foreach { value =>
-        val found = doc.getAttribute(attr)
+        //val found = doc.getAttribute(attr)
       }
     }
 
+    val pipeSplitter = """\\|""".r
+    val dashSplitter = """ - """.r
+    val arrowSplitter = """»""".r
+    val colonSplitter = """:""".r
+
     def getTitle(article: Article): String = {
-      var title = ""
       val doc = article.doc
-      val title = doc.getElementsByTag("title")
-      if (title == null || title.isEmpty)
+      val titleElem = doc.getElementsByTag("title")
+      if (titleElem == null || titleElem.isEmpty)
         return ""
-      var titleText = title.first.text
+      var titleText = titleElem.first.text
       if (titleText == null || titleText == "")
         return ""
       var usedDelimeter = false
       if (titleText.contains("|")) {
-        //titleText
+        titleText = doTitleSplits(titleText, pipeSplitter)
+        usedDelimeter = true
       }
-      return ""
+      if (!usedDelimeter && titleText.contains("|")) {
+        titleText = doTitleSplits(titleText, dashSplitter)
+        usedDelimeter = true
+      }
+      if (!usedDelimeter && titleText.contains("»")) {
+        titleText = doTitleSplits(titleText, arrowSplitter)
+        usedDelimeter = true
+      }
+      if (!usedDelimeter && titleText.contains(":")) {
+        titleText = doTitleSplits(titleText, colonSplitter)
+      }
+      return """(&#65533;)""".r.replaceAllIn(titleText, "")
+    }
+
+    def doTitleSplits(title: String, splitter: Regex): String = {
+      var largestTextLen = 0
+      var largeTextIndex = 0
+      val titlePieces = splitter.split(title)
+      var i =0
+      while (i < titlePieces.length) {
+        val current = titlePieces(i)
+        if (current.length > largestTextLen) {
+          largestTextLen = current.length
+          largeTextIndex = i
+        }
+        i += 1
+      }
+      return """»|(&raquo;)""".r.replaceAllIn(titlePieces(largeTextIndex), "")
     }
   }
 }
