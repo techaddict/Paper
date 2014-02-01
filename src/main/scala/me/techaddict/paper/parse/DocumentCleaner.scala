@@ -1,6 +1,6 @@
-package io.pilo.parse
+package me.techaddict.paper.parse
 
-import io.pilo.Article
+import me.techaddict.paper.Article
 import org.jsoup.nodes.{ Element, TextNode, Node, Document }
 import org.jsoup.select.Evaluator.Tag
 import org.jsoup.select.{ Collector, Elements }
@@ -9,7 +9,7 @@ import java.util.regex.{Matcher, Pattern}
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
-object DocumentCleaner extends io.pilo.Configuration{
+object DocumentCleaner extends me.techaddict.paper.Configuration{
 
   val removeNodes = "^side$|combx|retweet|mediaarticlerelated|menucontainer|navbar|comment|PopularQuestions" +
     "|contact|foot|footer|Footer|footnote|cnn_strycaptiontxt|links|meta$|scroll|shoutbox|sponsor" +

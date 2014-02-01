@@ -1,4 +1,4 @@
-package io.pilo
+package me.techaddict.paper
 
 import util.url.Url._
 import util.url.Parse._
@@ -82,7 +82,7 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
       println(" You must Download and Parse the article before using this")
     }
     else {
-      import io.pilo.text.Nlp
+      import me.techaddict.paper.text.Nlp
       val nlp = new Nlp()
       val textKeywords = nlp.getKeywords(text)._1.keys
       val titleKeywords = nlp.getKeywords(title)._1.keys

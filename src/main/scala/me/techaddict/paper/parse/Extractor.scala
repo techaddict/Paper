@@ -1,13 +1,13 @@
-package io.pilo.parse
+package me.techaddict.paper.parse
 
-import io.pilo.Article
+import me.techaddict.paper.Article
 import org.jsoup.nodes.{ Element, TextNode, Node, Document }
 import org.jsoup.select.Evaluator.Tag
 import org.jsoup.select.{ Collector, Elements }
 import scala.util.matching.Regex
-import io.pilo.util.url.Parse._
+import me.techaddict.paper.util.url.Parse._
 
-class Extractor extends io.pilo.Configuration {
+class Extractor extends me.techaddict.paper.Configuration {
   def getAuthors(article: Article) {
 
     def contains_digits(d: String): Boolean =

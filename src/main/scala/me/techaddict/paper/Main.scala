@@ -1,4 +1,4 @@
-package io.pilo
+package me.techaddict.paper
 
 import org.jsoup.Jsoup
 

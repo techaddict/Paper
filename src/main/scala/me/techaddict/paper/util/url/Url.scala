@@ -1,4 +1,4 @@
-package io.pilo.util.url
+package me.techaddict.paper.util.url
 
 object Url{
   val protocols = Array("http", "https")

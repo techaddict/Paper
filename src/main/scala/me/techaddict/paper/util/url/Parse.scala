@@ -1,7 +1,7 @@
-package io.pilo.util.url
+package me.techaddict.paper.util.url
 
 object Parse {
-  import io.pilo.util.url._
+  import me.techaddict.paper.util.url._
 
   val goodPaths = Array("story", "article", "feature", "featured", "slides", "slideshow", "gallery", "news", "video", "media", "v", "radio", "press")
   val badChunks = Array("careers", "contact", "about", "faq", "terms", "privacy", "adverd", "preferences", "feedback", "info", "browse", "howto", "account", "subscribe", "donate", "shop", "admin")

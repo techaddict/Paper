@@ -1,4 +1,4 @@
-package io.pilo.network
+package me.techaddict.paper.network
 
 import concurrent.{ Future, Promise }
 import com.ning.http.client.{ AsyncHttpClient, AsyncHttpClientConfig }
@@ -10,7 +10,7 @@ trait WebClient {
 
 case class BadStatus(status: Int) extends RuntimeException
 
-object AsyncWebClient extends WebClient with io.pilo.Configuration {
+object AsyncWebClient extends WebClient with me.techaddict.paper.Configuration {
   val config = new AsyncHttpClientConfig.Builder()
     config.setUserAgent(browserUserAgent)
       .setRequestTimeoutInMs(requestTimeout)

@@ -1,7 +1,7 @@
-package io.pilo.text
+package me.techaddict.paper.text
 
 class StopWords {
-  import io.pilo.text.{StopWords => ws}
+  import me.techaddict.paper.text.{StopWords => ws}
   val PUNCTUATION = """\p{punct}""".r
 
   def removePunctuation(content: String): String = content.replaceAll(PUNCTUATION.toString, "")
@@ -23,7 +23,7 @@ class StopWords {
 }
 
 object StopWords {
-  import io.pilo.util.helpers.FileHelper
+  import me.techaddict.paper.util.helpers.FileHelper
 
   private var _stopWordCount, _wordCount = 0
 

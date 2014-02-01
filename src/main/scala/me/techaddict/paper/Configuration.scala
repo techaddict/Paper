@@ -1,4 +1,4 @@
-package io.pilo
+package me.techaddict.paper
 
 trait Configuration {
   var minWordCount = 300
@@ -15,7 +15,7 @@ trait Configuration {
   val fetch_images = false
   val keepArticleHtml = false
   val stopwordsClass = text.StopWords.stopWords
-  val browserUserAgent = "pilo.io/0.1"
+  val browserUserAgent = "paper/0.1"
   val requestTimeout = 7000
   val numberThreads = 10
   val verbose = false

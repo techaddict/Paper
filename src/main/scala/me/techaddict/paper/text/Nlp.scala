@@ -1,4 +1,4 @@
-package io.pilo.text
+package me.techaddict.paper.text
 
 import scala.collection.immutable.ListMap
 
@@ -83,13 +83,13 @@ class Nlp {
   def lengthScore(sentenceLen: Int): Double = 1.0 - scala.math.abs(ideal - sentenceLen) / ideal
 
   def titleScore(title: Array[String], sentence: Array[String]): Double = {
-    import io.pilo.text.{ StopWords => ws }
+    import me.techaddict.paper.text.{ StopWords => ws }
     val count = sentence.count(x => !ws.stopWords.contains(x) && title.contains(x))
     return count / math.max(title.size, 1).toDouble
   }
 
   def getKeywords(text: String): (Map[String, Int], Int) = {
-    import io.pilo.text.{StopWords => ws}
+    import me.techaddict.paper.text.{StopWords => ws}
     var keyWords = splitWords(text)
     val numWords = keyWords.length
     var freq: List[(String, Int)] =
