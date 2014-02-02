@@ -1,6 +1,6 @@
 ,
-_
 ?
+_
 a
 a's
 able
@@ -78,9 +78,11 @@ both
 brief
 but
 by
+c
 c'mon
 c's
 came
+campaign
 can
 can't
 cannot
@@ -106,6 +108,7 @@ corresponding
 could
 couldn't
 course
+criticized
 currently
 definitely
 described
@@ -129,6 +132,7 @@ eight
 either
 else
 elsewhere
+endorsed
 enough
 entirely
 especially
@@ -148,6 +152,7 @@ except
 far
 few
 fifth
+financial
 first
 five
 followed
@@ -205,6 +210,7 @@ hopefully
 how
 howbeit
 however
+i
 i'd
 i'll
 i'm
@@ -238,8 +244,8 @@ keep
 keeps
 kept
 know
-knows
 known
+knows
 last
 lately
 later
@@ -304,6 +310,7 @@ nowhere
 obviously
 of
 off
+official
 often
 oh
 ok
@@ -339,8 +346,10 @@ possible
 presumably
 probably
 provides
+quarterly
 que
 quite
+quote
 qv
 rather
 rd
@@ -353,6 +362,7 @@ regards
 relatively
 respectively
 right
+s
 said
 same
 saw
@@ -377,6 +387,7 @@ seriously
 seven
 several
 shall
+sharply
 she
 should
 shouldn't
@@ -477,6 +488,7 @@ useful
 uses
 using
 usually
+uucp
 value
 various
 very
@@ -531,7 +543,6 @@ within
 without
 won't
 wonder
-would
 would
 wouldn't
 yes

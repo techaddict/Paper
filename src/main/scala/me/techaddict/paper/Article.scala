@@ -86,7 +86,7 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
       val nlp = new Nlp()
       val textKeywords = nlp.getKeywords(text)._1.keys
       val titleKeywords = nlp.getKeywords(title)._1.keys
-      val keywords = (titleKeywords ++ textKeywords).toList
+      keywords = (titleKeywords ++ textKeywords).toArray
       val summarySentences = nlp.summarize("", title, text)
       summary = summarySentences.drop(summarySentences.length - maxSummary).mkString("\r\n")
     }

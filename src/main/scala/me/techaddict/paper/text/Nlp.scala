@@ -15,7 +15,7 @@ class Nlp {
     def titleWords = splitWords(title)
     val keywords = getKeywords(text)._1
     val ranks = score(sentences, titleWords, keywords)
-    return ranks.sortBy(-_.score).take(ranks.size.min(summaryLimit)).sortBy(_.order).toArray.reverse
+    return ranks.sortBy(-_.score).take(ranks.size.min(summaryLimit)).sortBy(_.order).toArray
   }
 
   def score(sentences: Array[String], titleWords: Array[String], keyWords: Map[String, Int]): List[Sentence] = {
@@ -31,7 +31,7 @@ class Nlp {
       val dbsFeature = dbs(sentence, keyWords)
       val frequency = (sbsFeature + dbsFeature) / 2.0 * 10.0
 
-      val totalScore = (titleFeature * 1.5 + frequency * 2.0 + sentenceLen * 0.5 + sentencePos * 1.0) / 4.0
+      val totalScore = (titleFeature * 1.5 + frequency * 2.0 + sentenceLen * 1.0 + sentencePos * 1.0) / 4.0
       ranks = ranks :+ Sentence(sentences(i), totalScore, i)
     }
     return ranks
@@ -84,7 +84,7 @@ class Nlp {
 
   def titleScore(title: Array[String], sentence: Array[String]): Double = {
     import me.techaddict.paper.text.{ StopWords => ws }
-    val count = sentence.count(x => !ws.stopWords.contains(x) && title.contains(x))
+    val count = sentence.count(x => !ws.stopWords.contains(x.toLowerCase()) && title.contains(x))
     return count / math.max(title.size, 1).toDouble
   }
 
@@ -93,7 +93,7 @@ class Nlp {
     var keyWords = splitWords(text)
     val numWords = keyWords.length
     var freq: List[(String, Int)] =
-      keyWords.filterNot(x => ws.stopWords.contains(x)).groupBy(x => x).map(x => (x._1, x._2.size)).toList.sortBy{_._2}
+      keyWords.filterNot(x => ws.stopWords.contains(x.toLowerCase)).groupBy(x => x).map(x => (x._1, x._2.size)).toList.sortBy{_._2}
     return (freq.takeRight(keywordsSize.min(freq.size)).toMap, numWords)
   }
 
