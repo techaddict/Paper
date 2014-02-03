@@ -3,7 +3,7 @@ package me.techaddict.paper.parse
 import me.techaddict.paper.Article
 import org.jsoup.nodes.{ Element, TextNode, Node, Document }
 import org.jsoup.select.Evaluator.Tag
-import org.jsoup.select.{ Collector, Elements }
+import org.jsoup.select.{ Selector, Collector, Elements }
 import scala.util.matching.Regex
 import me.techaddict.paper.util.url.Parse._
 import scala.collection.JavaConversions._
@@ -55,74 +55,86 @@ object Extractor extends me.techaddict.paper.Configuration {
     val pipeSplitter = """\\|""".r
     val dashSplitter = """ - """.r
     val arrowSplitter = """»""".r
-    val colonSplitter = """:""".r
-    def getTitle(article: Article): String = {
-      val doc = article.doc
-      val titleElem = doc.getElementsByTag("title")
-      if (titleElem == null || titleElem.isEmpty)
-        return ""
-      var titleText = titleElem.first.text
-      if (titleText == null || titleText == "")
-        return ""
-      var usedDelimeter = false
-      if (titleText.contains("|")) {
-        titleText = doTitleSplits(titleText, pipeSplitter)
-        usedDelimeter = true
-      }
-      if (!usedDelimeter && titleText.contains("|")) {
-        titleText = doTitleSplits(titleText, dashSplitter)
-        usedDelimeter = true
-      }
-      if (!usedDelimeter && titleText.contains("»")) {
-        titleText = doTitleSplits(titleText, arrowSplitter)
-        usedDelimeter = true
-      }
-      if (!usedDelimeter && titleText.contains(":")) {
-        titleText = doTitleSplits(titleText, colonSplitter)
-      }
-      return """(&#65533;)""".r.replaceAllIn(titleText, "")
-    }
-
-    def doTitleSplits(title: String, splitter: Regex): String = {
-      var largestTextLen = 0
-      var largeTextIndex = 0
-      val titlePieces = splitter.split(title)
-      var i =0
-      while (i < titlePieces.length) {
-        val current = titlePieces(i)
-        if (current.length > largestTextLen) {
-          largestTextLen = current.length
-          largeTextIndex = i
-        }
-        i += 1
-      }
-      return """»|(&raquo;)""".r.replaceAllIn(titlePieces(largeTextIndex), "")
-    }
-
-    def getMetaContent(doc: Document, metaName: String): String = {
-      val meta: Elements = doc.select(metaName)
-      var content = ""
-      if (meta.size > 0)
-        content = meta.first.attr("content")
-      return (if (content == "") "" else content)//trim
-    }
-
-    def getMetaDescription(article: Article) =
-      getMetaContent(article.doc, "meta[name=description]")
-
-    def getMetaKeywords(article: Article) =
-      getMetaContent(article.doc, "meta[name=keywords]")
-
-    def getCanonicalLink(article: Article): String = {
-      val meta = article.doc.select("link[rel=canonical]")
-      if (meta.size() > 0) {
-        val href = Option(meta.first().attr("href")).getOrElse("")
-        if (href.nonEmpty) href else article.finalUrl
-      }
-      else
-        article.finalUrl
-    }
   }
+
+  def getTitle(article: Article): String = {
+    val doc = article.doc
+    val titleElem = doc.getElementsByTag("title")
+    if (titleElem == null || titleElem.isEmpty)
+      return ""
+    var titleText = titleElem.first.text
+    if (titleText == null || titleText == "")
+      return ""
+    var usedDelimeter = false
+    if (titleText.contains("|")) {
+      titleText = doTitleSplits(titleText, pipeSplitter)
+      usedDelimeter = true
+    }
+    if (!usedDelimeter && titleText.contains("|")) {
+      titleText = doTitleSplits(titleText, dashSplitter)
+      usedDelimeter = true
+    }
+    if (!usedDelimeter && titleText.contains("»")) {
+      titleText = doTitleSplits(titleText, arrowSplitter)
+      usedDelimeter = true
+    }
+    if (!usedDelimeter && titleText.contains(":")) {
+      titleText = doTitleSplits(titleText, colonSplitter)
+    }
+    return """(&#65533;)""".r.replaceAllIn(titleText, "")
+  }
+
+  def doTitleSplits(title: String, splitter: Regex): String = {
+    var largestTextLen = 0
+    var largeTextIndex = 0
+    val titlePieces = splitter.split(title)
+    var i =0
+    while (i < titlePieces.length) {
+      val current = titlePieces(i)
+      if (current.length > largestTextLen) {
+        largestTextLen = current.length
+        largeTextIndex = i
+      }
+      i += 1
+    }
+    return """»|(&raquo;)""".r.replaceAllIn(titlePieces(largeTextIndex), "")
+  }
+
+  def getMetaContent(doc: Document, metaName: String): String = {
+    val meta: Elements = doc.select(metaName)
+    var content = ""
+    if (meta.size > 0)
+      content = meta.first.attr("content")
+    return (if (content == "") "" else content)//trim
+  }
+
+  def getMetaDescription(article: Article) =
+    getMetaContent(article.doc, "meta[name=description]")
+
+  def getMetaKeywords(article: Article) =
+    getMetaContent(article.doc, "meta[name=keywords]")
+
+  def getCanonicalLink(article: Article): String = {
+    val meta = article.doc.select("link[rel=canonical]")
+    if (meta.size() > 0) {
+      val href = Option(meta.first().attr("href")).getOrElse("")
+      if (href.nonEmpty) href else article.finalUrl
+    }
+    else
+      article.finalUrl
+  }
+
+  def extractTags(doc: Document): Set[String] = {
+    if(doc.children.size == 0) return Set.empty[String]
+    val elements = Selector.select("a[rel=tag], a[href*=/tag/]", doc)
+    if (elements.size == 0) return Set.empty[String]
+    var tags = Set[String]()
+    elements.filter(x => x.text != "") foreach { el =>
+      tags += el.text
+    }
+    return tags
+  }
+
   def calculateBestNode(doc: Document): Element = {
     var topNode: Element = null
     val nodesToCheck = List("p", "pre", "td").foldLeft(List[Element]())((x, y) => x ++ Collector.collect(new Tag(y), doc))
