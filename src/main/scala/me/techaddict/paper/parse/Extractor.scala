@@ -7,6 +7,7 @@ import org.jsoup.select.{ Collector, Elements }
 import scala.util.matching.Regex
 import me.techaddict.paper.util.url.Parse._
 import scala.collection.JavaConversions._
+import me.techaddict.paper.text.StopWords
 
 object Extractor extends me.techaddict.paper.Configuration {
   def getAuthors(article: Article) {
@@ -123,7 +124,6 @@ object Extractor extends me.techaddict.paper.Configuration {
     }
   }
   def calculateBestNode(doc: Document): Element = {
-    import me.techaddict.paper.text.StopWords
     var topNode: Element = null
     val nodesToCheck = List("p", "pre", "td").foldLeft(List[Element]())((x, y) => x ++ Collector.collect(new Tag(y), doc))
     var startingBoost = 1.0
@@ -201,7 +201,6 @@ object Extractor extends me.techaddict.paper.Configuration {
   }
 
   def isBoostable(node: Element): Boolean = {
-    import me.techaddict.paper.text.StopWords
     var nodes = walkSiblings(node)
     var stepsAway = 0
     val maxStepsAwayFromNode = 3
@@ -251,5 +250,78 @@ object Extractor extends me.techaddict.paper.Configuration {
     val score = node.attr("gravityScore")
     if (score == "") return 0
     else return score.toInt
+  }
+
+  def getSiblingScore(topNode: Element): Int = {
+    var paraNum, paraScore = 0
+    val nodesToCheck = topNode.getElementsByTag("p")
+    nodesToCheck foreach { node =>
+      val count = new StopWords().getStopWordsCount(node.text)
+      if (count > 2 && !isHighLinkDensity(node)) {
+        paraNum += 1
+        paraScore += count
+      }
+    }
+    return if (paraNum > 0) paraScore / paraNum else 100000
+  }
+
+  def addSiblings(topNode: Element): Element = {
+    val baselineScoreSiblingPara = getSiblingScore(topNode)
+    var results = walkSiblings(topNode).foldLeft("")((x, y) => x ++ siblingsContent(y, baselineScoreSiblingPara))
+    topNode.child(0).before(results.mkString)
+    return topNode
+  }
+
+  def siblingsContent(node: Element, baselineScoreSiblingPara: Int): String = {
+    if (node.tagName == "p" && node.text.length > 0)
+      return node.outerHtml
+    else {
+      val potentialParagraphs = node.getElementsByTag("p")
+      if (potentialParagraphs.first == null)
+        return ""
+      else {
+        var ps = ""
+        potentialParagraphs foreach { paragraph =>
+          var text = paragraph.text
+          if (text.length > 0) {
+            val paraScore = new StopWords().getStopWordsCount(text)
+            val score = baselineScoreSiblingPara * 0.3
+            if (score < paraScore && !isHighLinkDensity(paragraph)) {
+              ps += "<p>" + paragraph.text + "</p>"
+            }
+          }
+        }
+        return ps
+      }
+    }
+  }
+
+  def postCleanup(targetNode: Element): Element = {
+    val node = addSiblings(targetNode)
+    node.children.filter(x => x.tagName != "p")
+    .filter( e => isHighLinkDensity(e) || isTableAndNoParaExist(e) || !isNodeScoreThreshholdMet(node, e))
+    .foreach { e =>
+      e.remove()
+    }
+    return node
+  }
+
+  def isTableAndNoParaExist(node: Element): Boolean = {
+    node.getElementsByTag("p") filter(p => p.text.length < 25) foreach { p =>
+      p.remove()
+    }
+    val subPara = node.getElementsByTag("p")
+    if (subPara.length == 0 && (node.tagName != "td"))
+      return true
+    return false
+  }
+
+  def isNodeScoreThreshholdMet(node: Element, e: Element): Boolean = {
+    val topNodeScore = getScore(node)
+    val currentNodeScore = getScore(e)
+    val thresholdScore = topNodeScore * 0.08
+    if (currentNodeScore < thresholdScore && e.tagName != "td")
+      return false
+    return true
   }
 }
