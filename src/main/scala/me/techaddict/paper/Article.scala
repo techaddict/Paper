@@ -33,6 +33,7 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
   var summary = ""
   var html: Future[String] = _
   var articleHtml = ""
+  var cleanedArticleText = ""
 
   var isParsed = false
   var isDownloaded = false
@@ -44,6 +45,7 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
   var doc: Document = null
   var rawDoc: Document = null
 
+  
   def build {
     download
     parse
