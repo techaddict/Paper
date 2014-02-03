@@ -6,7 +6,7 @@ class StopWords {
 
   def removePunctuation(content: String): String = content.replaceAll(PUNCTUATION.toString, "")
   def getcandidateWords(strippedInput: String): Array[String] = strippedInput.split(' ')
-  def getStopWordsCount(content: String) {
+  def getStopWordsCount(content: String): Int = {
     val strippedInput = removePunctuation(content)
     val candidateWords = getcandidateWords(strippedInput)
     var overlappingStopWords: Array[String] = Array()
@@ -19,6 +19,7 @@ class StopWords {
     ws.wordCount = count
     ws.stopWordCount = overlappingStopWords.length
     //ws.stopWords = overlappingStopWords
+    return ws.stopWordCount
   }
 }
 

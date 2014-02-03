@@ -3,7 +3,7 @@ package me.techaddict.paper
 import util.url.Url._
 import util.url.Parse._
 import concurrent.{ Future, Promise }
-import org.jsoup.nodes.Document
+import org.jsoup.nodes.{ Element, TextNode, Node, Document }
 import org.jsoup.Jsoup
 
 class Article(url1: String, title: String = "", sourceUrl1: String = "") extends Configuration {
@@ -40,9 +40,9 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
   var metaDescription = ""
   var metaFavicon = ""
   var canonicalLink = ""
-  var topNode = None
-  var doc: Document = _
-  var rawDoc = None
+  var topNode: Element = null
+  var doc: Document = null
+  var rawDoc: Document = null
 
   def build {
     download
@@ -54,7 +54,17 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
     import scala.concurrent.ExecutionContext.Implicits.global
     html = network.AsyncWebClient.get(url)
     //AsyncWebClient.shutdown()
-    isDownloaded = true
+    html onSuccess {
+      case content =>
+        doc = Jsoup.parse(content)
+        isDownloaded = true
+        network.AsyncWebClient.shutdown()
+    }
+    html onFailure {
+      case e =>
+        println("Error html not found" + e)
+        network.AsyncWebClient.shutdown()
+    }
   }
 
   def isValidUrl = validUrl(url)
@@ -65,16 +75,14 @@ class Article(url1: String, title: String = "", sourceUrl1: String = "") extends
     if(!isDownloaded){
       println("you must download an article before parsing it")
     }
-    html onSuccess {
-      case content =>
-        doc = Jsoup.parse(content)
-        network.AsyncWebClient.shutdown()
+    rawDoc = doc
+    if (doc == None){
+      println("Article Parse Error" + url)
     }
-    html onFailure {
-      case e =>
-        println("Error html not found" + e)
-        network.AsyncWebClient.shutdown()
-    }
+    //val documentCleaner = DocumentCleaner
+    //OutputFormatter(doc)
+    import me.techaddict.paper.parse.Extractor._
+    topNode = calculateBestNode(doc)
   }
 
   def nlp {
