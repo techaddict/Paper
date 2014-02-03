@@ -10,6 +10,12 @@ import scala.collection.JavaConversions._
 import me.techaddict.paper.text.StopWords
 
 object Extractor extends me.techaddict.paper.Configuration {
+
+  val pipeSplitter = """\\|""".r
+  val dashSplitter = """ - """.r
+  val arrowSplitter = """»""".r
+  val colonSplitter = """:""".r
+
   def getAuthors(article: Article) {
 
     def contains_digits(d: String): Boolean =
@@ -51,10 +57,6 @@ object Extractor extends me.techaddict.paper.Configuration {
         //val found = doc.getAttribute(attr)
       }
     }
-
-    val pipeSplitter = """\\|""".r
-    val dashSplitter = """ - """.r
-    val arrowSplitter = """»""".r
   }
 
   def getTitle(article: Article): String = {
