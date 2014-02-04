@@ -7,6 +7,7 @@ import org.jsoup.Jsoup
 import me.techaddict.paper.Article
 import me.techaddict.paper.text.StopWords
 import scala.collection.JavaConversions._
+import org.apache.commons.lang.StringEscapeUtils
 
 object OutputFormatter extends me.techaddict.paper.Configuration{
   var topNode = None
@@ -16,14 +17,9 @@ object OutputFormatter extends me.techaddict.paper.Configuration{
   def convertToText(node: Element): String = node match {
     case null => return ""
     case node => {
-      var x = node.children.map((e: Element) => {
-        try{
-          Utility.unescape(e.text, new StringBuilder("")).toString.trim
-        } catch {
-          case _: Exception =>
-        }
-      })
-      return x.mkString("\n\n")
+      (node.children().map((e: Element) => {
+        StringEscapeUtils.unescapeHtml(e.text).trim
+      })).toList.mkString("\n\n")
     }
   }
 
@@ -32,7 +28,7 @@ object OutputFormatter extends me.techaddict.paper.Configuration{
     convertLinksToText(node)
     replaceTagsWithText(node)
     removeParagraphsWithFewWords(node)
-    println("\n\n\n\n\n"+node.toString+"\n\n\n\n\n")
+    println("\n\n\n\n\n"+convertToText(node)+"\n\n\n\n\n")
     convertToText(node)
   }
 
