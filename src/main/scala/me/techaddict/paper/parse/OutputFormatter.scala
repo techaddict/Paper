@@ -7,7 +7,7 @@ import org.jsoup.Jsoup
 import me.techaddict.paper.Article
 import me.techaddict.paper.text.StopWords
 import scala.collection.JavaConversions._
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils
 
 object OutputFormatter extends me.techaddict.paper.Configuration{
   var topNode = None
@@ -18,7 +18,7 @@ object OutputFormatter extends me.techaddict.paper.Configuration{
     case null => return ""
     case node => {
       (node.children().map((e: Element) => {
-        StringEscapeUtils.unescapeHtml(e.text).trim
+        StringEscapeUtils.unescapeHtml4(e.text).trim
       })).toList.mkString("\n\n")
     }
   }

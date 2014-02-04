@@ -4,4 +4,4 @@ libraryDependencies ++= Seq(
   "com.ning" % "async-http-client" % "1.7.24",
   "org.jsoup" % "jsoup" % "1.7.3",
   "org.scalatest" % "scalatest_2.10" % "2.0" % "test",
-  "commons-lang" % "commons-lang" % "2.6")
+  "org.apache.commons" % "commons-lang3" % "3.2.1")
