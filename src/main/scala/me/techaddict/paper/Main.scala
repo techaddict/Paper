@@ -1,6 +1,7 @@
 package me.techaddict.paper
 
 import org.jsoup.Jsoup
+import org.jsoup.nodes.{ Element, TextNode, Node, Document }
 
 object Main extends App {
   var txt = util.helpers.FileHelper.loadResourceFile("test.txt")
@@ -9,7 +10,7 @@ object Main extends App {
   var x = new text.Nlp()
   //println(x.splitWords(txt.toString) map {x=>println(x)})
   //x.summarize("", title, txt) map {x => println(x.sentence)}
-  parse.OutputFormatter.convertToText(Jsoup.parse(util.helpers.FileHelper.loadResourceFile("testhtml/aol1.txt"))) map {println}
+  //parse.OutputFormatter.convertToText(Jsoup.parse(util.helpers.FileHelper.loadResourceFile("testhtml/aol1.txt"))) map {println}
   //Async Tester
   import scala.concurrent.ExecutionContext.Implicits.global
   //  AsyncWebClient get "http://www.google.co.in/?gws_rd=cr&amp;ei=P4qwUoDKJoKOrQeN8YGQBg" map println foreach (_ => AsyncWebClient.shutdown())
@@ -27,7 +28,11 @@ object Main extends App {
       var html = Jsoup.parse(content)
       html = clean(html)
       println(html.toString.length)
-      network.AsyncWebClient.shutdown()
+      var topNode: Element = parse.Extractor.calculateBestNode(html)
+      topNode = parse.Extractor.postCleanup(topNode)
+      //println(topNode)
+      println("output" + parse.OutputFormatter.getFormattedText(topNode))
+      //network.AsyncWebClient.shutdown()
   }
   a.html onFailure {
     case e =>

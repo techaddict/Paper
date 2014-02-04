@@ -3,11 +3,20 @@ package me.techaddict.paper.parse
 import me.techaddict.paper.Article
 import org.jsoup.nodes.{ Element, TextNode, Node, Document }
 import org.jsoup.select.Evaluator.Tag
+import org.jsoup.select.Evaluator
 import org.jsoup.select.{ Selector, Collector, Elements }
 import scala.util.matching.Regex
 import me.techaddict.paper.util.url.Parse._
 import scala.collection.JavaConversions._
-import me.techaddict.paper.text.StopWords
+import me.techaddict.paper.text._
+
+class TagsEvaluator(tags: scala.collection.Set[String]) extends Evaluator {
+  def matches(root: Element, element: Element) = tags.contains(element.tagName())
+}
+
+object TagsEvaluator {
+  def apply(tags: String*): TagsEvaluator = new TagsEvaluator(tags.toSet)
+}
 
 object Extractor extends me.techaddict.paper.Configuration {
 
@@ -15,6 +24,8 @@ object Extractor extends me.techaddict.paper.Configuration {
   val dashSplitter = """ - """.r
   val arrowSplitter = """»""".r
   val colonSplitter = """:""".r
+
+  val TOP_NODE_TAGS = new TagsEvaluator(Set("p", "td", "pre"))
 
   def getAuthors(article: Article) {
 
@@ -139,7 +150,7 @@ object Extractor extends me.techaddict.paper.Configuration {
 
   def calculateBestNode(doc: Document): Element = {
     var topNode: Element = null
-    val nodesToCheck = List("p", "pre", "td").foldLeft(List[Element]())((x, y) => x ++ Collector.collect(new Tag(y), doc))
+    val nodesToCheck = Collector.collect(TOP_NODE_TAGS, doc)
     var startingBoost = 1.0
     var cnt = 0
     var i = 0
@@ -148,8 +159,8 @@ object Extractor extends me.techaddict.paper.Configuration {
     val nodeNumber = nodesWithText.length
     nodesToCheck foreach { node =>
       val nodeText = node.text
-      var count = new StopWords().getStopWordsCount(nodeText)
-      if (count > 2 && !isHighLinkDensity(node))
+      var wordstat = StopWords.getStopWordCount(nodeText)
+      if (wordstat.getStopWordCount > 2 && !isHighLinkDensity(node))
         nodesWithText = nodesWithText :+ node
     }
     var negativeScoring = 0
@@ -168,8 +179,8 @@ object Extractor extends me.techaddict.paper.Configuration {
           boostScore = 5.0
       }
       var textNode = node.text
-      val count = new StopWords().getStopWordsCount(textNode)
-      val upScore = count + boostScore.toInt
+      val ws = StopWords.getStopWordCount(textNode)
+      val upScore = ws.getStopWordCount + boostScore.toInt
 
       updateScore(node.parent, upScore)
       updateScore(node.parent.parent, upScore / 2)
@@ -223,8 +234,8 @@ object Extractor extends me.techaddict.paper.Configuration {
       if (currentNode.tagName == "p") {
         if (stepsAway >= maxStepsAwayFromNode)
           return false
-        val count = new StopWords().getStopWordsCount(currentNode.text)
-        if (count > minimumStopWordCount)
+        val ws = StopWords.getStopWordCount(currentNode.text)
+        if (ws.getStopWordCount > minimumStopWordCount)
           return true
         stepsAway += 1
       }
@@ -233,8 +244,10 @@ object Extractor extends me.techaddict.paper.Configuration {
   }
 
   def walkSiblings(node: Element): Array[Element] = {
+    var ret = Array.empty[Element]
+    if (node == null)
+      return ret
     var currentSibling = node.previousElementSibling
-    var ret = Array[Element]()
     while (currentSibling != null) {
       ret = ret :+ currentSibling
       currentSibling = currentSibling.previousElementSibling
@@ -267,13 +280,15 @@ object Extractor extends me.techaddict.paper.Configuration {
   }
 
   def getSiblingScore(topNode: Element): Int = {
+    if (topNode == null)
+      return 0
     var paraNum, paraScore = 0
     val nodesToCheck = topNode.getElementsByTag("p")
     nodesToCheck foreach { node =>
-      val count = new StopWords().getStopWordsCount(node.text)
-      if (count > 2 && !isHighLinkDensity(node)) {
+      val ws = StopWords.getStopWordCount(node.text)
+      if (ws.getStopWordCount > 2 && !isHighLinkDensity(node)) {
         paraNum += 1
-        paraScore += count
+        paraScore += ws.getStopWordCount
       }
     }
     return if (paraNum > 0) paraScore / paraNum else 100000
@@ -282,7 +297,7 @@ object Extractor extends me.techaddict.paper.Configuration {
   def addSiblings(topNode: Element): Element = {
     val baselineScoreSiblingPara = getSiblingScore(topNode)
     var results = walkSiblings(topNode).foldLeft("")((x, y) => x ++ siblingsContent(y, baselineScoreSiblingPara))
-    topNode.child(0).before(results.mkString)
+    if (topNode != null)topNode.child(0).before(results.mkString)
     return topNode
   }
 
@@ -298,7 +313,8 @@ object Extractor extends me.techaddict.paper.Configuration {
         potentialParagraphs foreach { paragraph =>
           var text = paragraph.text
           if (text.length > 0) {
-            val paraScore = new StopWords().getStopWordsCount(text)
+            val ws = StopWords.getStopWordCount(text)
+            val paraScore = ws.getStopWordCount
             val score = baselineScoreSiblingPara * 0.3
             if (score < paraScore && !isHighLinkDensity(paragraph)) {
               ps += "<p>" + paragraph.text + "</p>"
@@ -312,6 +328,8 @@ object Extractor extends me.techaddict.paper.Configuration {
 
   def postCleanup(targetNode: Element): Element = {
     val node = addSiblings(targetNode)
+    if (node == null)
+      return node
     node.children.filter(x => x.tagName != "p")
     .filter( e => isHighLinkDensity(e) || isTableAndNoParaExist(e) || !isNodeScoreThreshholdMet(node, e))
     .foreach { e =>

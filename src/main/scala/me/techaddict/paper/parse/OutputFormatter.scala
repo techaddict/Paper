@@ -14,11 +14,16 @@ object OutputFormatter extends me.techaddict.paper.Configuration{
   var tagReplace = "<[^>]+>".r
 
   def convertToText(node: Element): String = node match {
-    case null => ""
+    case null => return ""
     case node => {
-      (node.children.map(e => {
-        Utility.unescape(e.text, new StringBuilder("")).toString.trim
-        })).mkString("\n\n")
+      var x = node.children.map((e: Element) => {
+        try{
+          Utility.unescape(e.text, new StringBuilder("")).toString.trim
+        } catch {
+          case _: Exception =>
+        }
+      })
+      return x.mkString("\n\n")
     }
   }
 
@@ -27,10 +32,13 @@ object OutputFormatter extends me.techaddict.paper.Configuration{
     convertLinksToText(node)
     replaceTagsWithText(node)
     removeParagraphsWithFewWords(node)
+    println("\n\n\n\n\n"+node.toString+"\n\n\n\n\n")
     convertToText(node)
   }
 
   def removeNodesWithNegativeScores(node: Element) {
+    if (node == null)
+      return
     val gravityItems = node.select("*[gravityScore]")
     gravityItems foreach { item =>
       val score = item.attr("gravityScore").toInt
@@ -53,7 +61,7 @@ object OutputFormatter extends me.techaddict.paper.Configuration{
   }
 
   def replaceTagsWithText(node: Element) {
-    if (topNode != null) {
+    if (node != null) {
       val baseUri = node.baseUri()
       val bolds = node.getElementsByTag("b")
       bolds foreach { item =>
@@ -87,8 +95,8 @@ object OutputFormatter extends me.techaddict.paper.Configuration{
     if (node != null) {
       val allNodes = node.getAllElements
       allNodes foreach { el =>
-        val count = new StopWords().getStopWordsCount(el.text)
-        if (count < 3 && el.getElementsByTag("object").size == 0 && el.getElementsByTag("embed").size == 0)
+        val ws = StopWords.getStopWordCount(el.text)
+        if (ws.getStopWordCount < 3 && el.getElementsByTag("object").size == 0 && el.getElementsByTag("embed").size == 0)
           el .remove()
       }
       Option(node.getElementsByTag("p").first()) foreach {

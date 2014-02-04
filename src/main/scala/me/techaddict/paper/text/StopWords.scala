@@ -1,28 +1,5 @@
 package me.techaddict.paper.text
 
-class StopWords {
-  import me.techaddict.paper.text.{StopWords => ws}
-  val PUNCTUATION = """\p{punct}""".r
-
-  def removePunctuation(content: String): String = content.replaceAll(PUNCTUATION.toString, "")
-  def getcandidateWords(strippedInput: String): Array[String] = strippedInput.split(' ')
-  def getStopWordsCount(content: String): Int = {
-    val strippedInput = removePunctuation(content)
-    val candidateWords = getcandidateWords(strippedInput)
-    var overlappingStopWords: Array[String] = Array()
-    var count = 0
-    for (word <- candidateWords) {
-      count += 1
-      if (ws.stopWords.contains(word.toLowerCase))
-        overlappingStopWords ++= Array(word.toLowerCase)
-    }
-    ws.wordCount = count
-    ws.stopWordCount = overlappingStopWords.length
-    //ws.stopWords = overlappingStopWords
-    return ws.stopWordCount
-  }
-}
-
 object StopWords {
   import me.techaddict.paper.util.helpers.FileHelper
 
@@ -38,5 +15,27 @@ object StopWords {
   //def stopWords_= (value: Array[String]) = _stopWords = value
 
   val fileName: String = "stopWords.txt"
-  lazy val stopWords: Set[String] = FileHelper.loadResourceFile(fileName).split('\n').toSet
+  val stopWords: Set[String] = FileHelper.loadResourceFile(fileName).split('\n').toSet
+
+  val PUNCTUATION = """[^a-zA-Z0-9-|_\\s]"""
+
+  def removePunctuation(content: String): String =
+    content.replaceAll(PUNCTUATION, " ")
+  def getcandidateWords(strippedInput: String): Array[String] =
+    strippedInput.split(" ")
+  def getStopWordCount(content: String): WordStats = {
+    if (content == "") return WordStats.EMPTY
+    val ws: WordStats = new WordStats
+    val strippedInput = removePunctuation(content)
+    val candidateWords = getcandidateWords(strippedInput)
+    var overlappingStopWords = List[String]()
+    candidateWords foreach(word => {
+      if (stopWords.contains(word.toLowerCase))
+        overlappingStopWords ++= List(word.toLowerCase)
+    })
+    ws.setWordCount(candidateWords.length)
+    ws.setStopWordCount(overlappingStopWords.size)
+    ws.setStopWords(overlappingStopWords)
+    return ws
+  }
 }

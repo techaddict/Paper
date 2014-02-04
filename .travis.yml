@@ -1,6 +1,6 @@
 language: scala
 script:
-  - ./sbt package run
+  - ./sbt package
 scala:
   - 2.10.3
   - 2.10.4-RC2
