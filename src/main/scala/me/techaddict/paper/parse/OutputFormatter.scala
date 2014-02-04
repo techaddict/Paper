@@ -28,7 +28,6 @@ object OutputFormatter extends me.techaddict.paper.Configuration{
     convertLinksToText(node)
     replaceTagsWithText(node)
     removeParagraphsWithFewWords(node)
-    println("\n\n\n\n\n"+convertToText(node)+"\n\n\n\n\n")
     convertToText(node)
   }
 
